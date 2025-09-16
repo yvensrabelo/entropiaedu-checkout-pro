@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "entropiaedu-checkout",
   "builds": [
     {
       "src": "app.js",
@@ -12,8 +11,5 @@
       "src": "/(.*)",
       "dest": "/app.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
