@@ -33,6 +33,17 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Rota de teste para verificar variáveis de ambiente
+app.get('/test', (req, res) => {
+    res.json({
+        hasAccessToken: !!process.env.MP_ACCESS_TOKEN,
+        hasPublicKey: !!process.env.MP_PUBLIC_KEY,
+        hasProductionUrl: !!process.env.PRODUCTION_URL,
+        nodeEnv: process.env.NODE_ENV,
+        accessTokenLength: process.env.MP_ACCESS_TOKEN ? process.env.MP_ACCESS_TOKEN.length : 0
+    });
+});
+
 // Criar preferência de pagamento
 app.post('/create_preference', async (req, res) => {
     try {
