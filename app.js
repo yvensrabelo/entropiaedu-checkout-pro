@@ -36,6 +36,10 @@ app.get('/', (req, res) => {
 // Criar preferência de pagamento
 app.post('/create_preference', async (req, res) => {
     try {
+        console.log('Criando preferência de pagamento...');
+        console.log('Access Token presente:', !!process.env.MP_ACCESS_TOKEN);
+        console.log('Request body:', req.body);
+
         const preference = new Preference(client);
 
         const body = {
@@ -94,9 +98,11 @@ app.post('/create_preference', async (req, res) => {
 
     } catch (error) {
         console.error('Erro ao criar preferência:', error);
+        console.error('Stack trace:', error.stack);
         res.status(500).json({
             error: 'Erro interno do servidor',
-            details: error.message
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
