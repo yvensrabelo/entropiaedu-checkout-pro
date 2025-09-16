@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EntropiaEdu - Checkout Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: #f9f9f9;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: #009ee3;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #0086c3;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #009ee3;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .mercadopago-logo {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .mercadopago-logo img {
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EntropiaEdu</h1>
+
+        <div class="product-card">
+            <h3>Produto Exemplo</h3>
+            <p>Descrição do produto que será vendido através do Checkout Pro do Mercado Pago.</p>
+            <div class="price">R$ 100,00</div>
+        </div>
+
+        <form id="checkout-form">
+            <div class="form-group">
+                <label for="title">Título do Produto:</label>
+                <input type="text" id="title" name="title" value="Curso EntropiaEdu" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descrição:</label>
+                <textarea id="description" name="description" rows="3" required>Curso completo de programação da EntropiaEdu</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Preço (R$):</label>
+                <input type="number" id="price" name="price" value="100.00" step="0.01" min="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantidade:</label>
+                <input type="number" id="quantity" name="quantity" value="1" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="payer_name">Nome do Comprador:</label>
+                <input type="text" id="payer_name" name="payer_name" value="João" required>
+            </div>
+
+            <div class="form-group">
+                <label for="payer_surname">Sobrenome:</label>
+                <input type="text" id="payer_surname" name="payer_surname" value="Silva" required>
+            </div>
+
+            <div class="form-group">
+                <label for="payer_email">Email:</label>
+                <input type="email" id="payer_email" name="payer_email" value="test@mercadopago.com" required>
+            </div>
+
+            <button type="submit" class="btn" id="checkout-btn">
+                Pagar com Mercado Pago
+            </button>
+        </form>
+
+        <div class="mercadopago-logo">
+            <img src="https://http2.mlstatic.com/storage/logos-api-admin/51e8db60-ab9c-11ed-9af4-45b24d5dd5df-xl@2x.png" alt="Mercado Pago">
+        </div>
+    </div>
+
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script>
+        // Configurar Mercado Pago SDK
+        const mp = new MercadoPago('APP_USR-e222b4da-94d8-42c4-9a8f-523f05c9deb8', {
+            locale: 'pt-BR'
+        });
+
+        document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('checkout-btn');
+            btn.disabled = true;
+            btn.textContent = 'Processando...';
+
+            try {
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData);
+
+                const response = await fetch('/create_preference', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const preference = await response.json();
+
+                if (preference.id) {
+                    // Redirecionar para o Checkout Pro
+                    window.location.href = preference.init_point;
+                } else {
+                    throw new Error('Erro ao criar preferência');
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao processar pagamento. Tente novamente.');
+                btn.disabled = false;
+                btn.textContent = 'Pagar com Mercado Pago';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento Aprovado - EntropiaEdu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: #28a745;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #218838;
+        }
+
+        .payment-details {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>Pagamento Aprovado!</h1>
+        <p>Seu pagamento foi processado com sucesso. Você receberá um email de confirmação em breve.</p>
+
+        <div class="payment-details">
+            <h3>Próximos passos:</h3>
+            <ul style="text-align: left; margin-top: 1rem;">
+                <li>Você receberá um email com os detalhes do pagamento</li>
+                <li>O acesso ao conteúdo será liberado automaticamente</li>
+                <li>Em caso de dúvidas, entre em contato conosco</li>
+            </ul>
+        </div>
+
+        <a href="/" class="btn">Voltar ao Início</a>
+    </div>
+
+    <script>
+        // Capturar parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentId = urlParams.get('payment_id');
+        const status = urlParams.get('status');
+        const externalReference = urlParams.get('external_reference');
+
+        if (paymentId) {
+            console.log('Payment ID:', paymentId);
+            console.log('Status:', status);
+            console.log('External Reference:', externalReference);
+        }
+    </script>
+</body>
+</html>
