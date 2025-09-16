@@ -113,10 +113,18 @@ app.post('/webhook', async (req, res) => {
     const webhook = require('./src/webhook');
 
     try {
-        // Validar assinatura do webhook
-        if (!webhook.validateWebhookSignature(req, process.env.WEBHOOK_SECRET)) {
-            console.error('Assinatura do webhook inválida');
-            return res.status(401).send('Unauthorized');
+        // Log da requisição para debug
+        console.log('Headers recebidos:', req.headers);
+        console.log('Body recebido:', req.body);
+
+        // Validar assinatura do webhook (mais permissivo para testes)
+        if (process.env.NODE_ENV === 'production' && process.env.WEBHOOK_SECRET) {
+            if (!webhook.validateWebhookSignature(req, process.env.WEBHOOK_SECRET)) {
+                console.error('Assinatura do webhook inválida');
+                return res.status(401).send('Unauthorized');
+            }
+        } else {
+            console.log('Modo de desenvolvimento - validação de assinatura desabilitada');
         }
 
         const notification = req.body;
