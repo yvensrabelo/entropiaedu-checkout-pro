@@ -53,51 +53,15 @@ app.post('/create_preference', async (req, res) => {
 
         const preference = new Preference(client);
 
+        // Preferência mínima para teste
         const body = {
             items: [
                 {
-                    id: '1234',
                     title: req.body.title || 'Produto Exemplo',
-                    currency_id: 'BRL',
-                    picture_url: 'https://via.placeholder.com/200',
-                    description: req.body.description || 'Descrição do produto',
-                    category_id: 'others',
-                    quantity: parseInt(req.body.quantity) || 1,
-                    unit_price: parseFloat(req.body.price) || 100.00
+                    quantity: 1,
+                    unit_price: 100.00
                 }
-            ],
-            payer: {
-                name: req.body.payer_name || 'João',
-                surname: req.body.payer_surname || 'Silva',
-                email: req.body.payer_email || 'test@mercadopago.com',
-                phone: {
-                    area_code: '11',
-                    number: '999999999'
-                },
-                identification: {
-                    type: 'CPF',
-                    number: '12345678901'
-                },
-                address: {
-                    street_name: 'Rua das Flores',
-                    street_number: 123,
-                    zip_code: '01234567'
-                }
-            },
-            back_urls: {
-                success: `${process.env.PRODUCTION_URL}/success`,
-                failure: `${process.env.PRODUCTION_URL}/failure`,
-                pending: `${process.env.PRODUCTION_URL}/pending`
-            },
-            auto_return: 'approved',
-            payment_methods: {
-                excluded_payment_methods: [],
-                excluded_payment_types: [],
-                installments: 12
-            },
-            notification_url: `${process.env.PRODUCTION_URL}/webhook`,
-            statement_descriptor: 'EntropiaEdu',
-            external_reference: 'REF_' + Date.now(),
+            ]
         };
 
         const result = await preference.create({ body });
