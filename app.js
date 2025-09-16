@@ -104,9 +104,9 @@ app.post('/webhook', async (req, res) => {
         console.log('Headers recebidos:', req.headers);
         console.log('Body recebido:', req.body);
 
-        // Validar assinatura do webhook (mais permissivo para testes)
-        if (process.env.NODE_ENV === 'production' && process.env.WEBHOOK_SECRET) {
-            if (!webhook.validateWebhookSignature(req, process.env.WEBHOOK_SECRET)) {
+        // Validar assinatura do webhook usando Client Secret
+        if (process.env.NODE_ENV === 'production' && process.env.MP_CLIENT_SECRET) {
+            if (!webhook.validateWebhookSignature(req, process.env.MP_CLIENT_SECRET)) {
                 console.error('Assinatura do webhook inválida');
                 return res.status(401).send('Unauthorized');
             }
