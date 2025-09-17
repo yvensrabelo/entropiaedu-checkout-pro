@@ -1,8 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { MercadoPagoConfig, Preference } = require('mercadopago');
+const { MercadoPagoConfig, Preference, Payment, MerchantOrder } = require('mercadopago');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,8 +12,8 @@ const port = process.env.PORT || 3000;
 const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN,
     options: {
-        timeout: 5000,
-        idempotencyKey: 'abc'
+        timeout: 5000
+        // idempotencyKey será gerada por requisição
     }
 });
 
@@ -51,6 +52,10 @@ app.post('/create_preference', async (req, res) => {
         console.log('Access Token presente:', !!process.env.MP_ACCESS_TOKEN);
         console.log('Request body:', req.body);
 
+        // Gerar idempotencyKey única para esta requisição
+        const idempotencyKey = crypto.randomUUID();
+        console.log('IdempotencyKey gerada:', idempotencyKey);
+
         const preference = new Preference(client);
 
         // Extrair dados do formulário
@@ -71,6 +76,19 @@ app.post('/create_preference', async (req, res) => {
             });
         }
 
+        // Validar e construir URL base
+        let baseUrl = process.env.PRODUCTION_URL;
+
+        if (!baseUrl) {
+            // Em desenvolvimento, usar URL da requisição
+            baseUrl = `${req.protocol}://${req.get('host')}`;
+            console.warn('PRODUCTION_URL não configurada, usando URL da requisição:', baseUrl);
+        } else if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+            return res.status(500).json({
+                error: 'PRODUCTION_URL mal configurada. Deve começar com http:// ou https://'
+            });
+        }
+
         // Configurar preferência com dados do formulário
         const body = {
             items: [
@@ -86,18 +104,23 @@ app.post('/create_preference', async (req, res) => {
                 surname: payer_surname || '',
                 email: payer_email
             },
-            notification_url: `${process.env.PRODUCTION_URL}/webhook`,
+            notification_url: `${baseUrl}/webhook`,
             back_urls: {
-                success: `${process.env.PRODUCTION_URL}/success`,
-                failure: `${process.env.PRODUCTION_URL}/failure`,
-                pending: `${process.env.PRODUCTION_URL}/pending`
+                success: `${baseUrl}/success`,
+                failure: `${baseUrl}/failure`,
+                pending: `${baseUrl}/pending`
             },
             auto_return: 'approved'
         };
 
         console.log('Notification URL configurada:', body.notification_url);
 
-        const result = await preference.create({ body });
+        const result = await preference.create({
+            body,
+            requestOptions: {
+                idempotencyKey: idempotencyKey
+            }
+        });
         res.json({
             id: result.id,
             init_point: result.init_point,
@@ -161,19 +184,48 @@ app.post('/webhook', async (req, res) => {
         switch (notification.topic || notification.type) {
             case 'payment':
                 if (notification.data && notification.data.id) {
-                    // Em produção, você faria uma chamada à API para obter os dados completos
-                    // const payment = await mercadopago.payment.findById(notification.data.id);
-                    // await webhook.processPaymentNotification(payment);
-                    console.log('Notificação de pagamento recebida:', notification.data.id);
+                    try {
+                        // Buscar dados completos do pagamento
+                        const payment = new Payment(client);
+                        const paymentData = await payment.get({
+                            id: notification.data.id
+                        });
+
+                        console.log('Dados do pagamento obtidos:', {
+                            id: paymentData.id,
+                            status: paymentData.status,
+                            status_detail: paymentData.status_detail,
+                            amount: paymentData.transaction_amount
+                        });
+
+                        // Processar notificação com dados reais
+                        await webhook.processPaymentNotification(paymentData);
+                    } catch (error) {
+                        console.error('Erro ao buscar dados do pagamento:', error);
+                    }
                 }
                 break;
 
             case 'merchant_order':
                 if (notification.data && notification.data.id) {
-                    // Em produção, você faria uma chamada à API para obter os dados completos
-                    // const order = await mercadopago.merchant_orders.findById(notification.data.id);
-                    // await webhook.processMerchantOrderNotification(order);
-                    console.log('Notificação de pedido recebida:', notification.data.id);
+                    try {
+                        // Buscar dados completos do pedido
+                        const merchantOrder = new MerchantOrder(client);
+                        const orderData = await merchantOrder.get({
+                            id: notification.data.id
+                        });
+
+                        console.log('Dados do pedido obtidos:', {
+                            id: orderData.id,
+                            status: orderData.status,
+                            items: orderData.items?.length || 0
+                        });
+
+                        // Processar notificação com dados reais
+                        await webhook.processMerchantOrderNotification(orderData);
+                    } catch (error) {
+                        console.error('Erro ao buscar dados do pedido:', error);
+                    }
                 }
                 break;
 
