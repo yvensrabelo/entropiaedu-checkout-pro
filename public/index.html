@@ -106,9 +106,9 @@
         <h1>EntropiaEdu</h1>
 
         <div class="product-card">
-            <h3>Produto Exemplo</h3>
-            <p>Descrição do produto que será vendido através do Checkout Pro do Mercado Pago.</p>
-            <div class="price">R$ 100,00</div>
+            <h3 id="product-title">Curso EntropiaEdu</h3>
+            <p id="product-description">Curso completo de programação da EntropiaEdu</p>
+            <div class="price" id="total-price">R$ 100,00</div>
         </div>
 
         <form id="checkout-form">
@@ -163,6 +163,29 @@
         const mp = new MercadoPago('APP_USR-e222b4da-94d8-42c4-9a8f-523f05c9deb8', {
             locale: 'pt-BR'
         });
+
+        // Função para atualizar preço e informações do produto
+        function updateProductInfo() {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const price = parseFloat(document.getElementById('price').value) || 0;
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+
+            // Atualizar elementos da página
+            document.getElementById('product-title').textContent = title;
+            document.getElementById('product-description').textContent = description;
+
+            const total = price * quantity;
+            document.getElementById('total-price').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        // Adicionar listeners para atualizar em tempo real
+        ['title', 'description', 'price', 'quantity'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateProductInfo);
+        });
+
+        // Atualizar na carga inicial
+        document.addEventListener('DOMContentLoaded', updateProductInfo);
 
         document.getElementById('checkout-form').addEventListener('submit', async function(e) {
             e.preventDefault();

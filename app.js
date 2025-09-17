@@ -53,15 +53,39 @@ app.post('/create_preference', async (req, res) => {
 
         const preference = new Preference(client);
 
-        // Configurar preferência com notification_url para webhooks
+        // Extrair dados do formulário
+        const {
+            title,
+            description,
+            price,
+            quantity,
+            payer_name,
+            payer_surname,
+            payer_email
+        } = req.body;
+
+        // Validar dados obrigatórios
+        if (!title || !price || !quantity || !payer_email) {
+            return res.status(400).json({
+                error: 'Dados obrigatórios faltando: title, price, quantity, payer_email'
+            });
+        }
+
+        // Configurar preferência com dados do formulário
         const body = {
             items: [
                 {
-                    title: req.body.title || 'Produto Exemplo',
-                    quantity: 1,
-                    unit_price: 100.00
+                    title: title,
+                    description: description || '',
+                    quantity: parseInt(quantity),
+                    unit_price: parseFloat(price)
                 }
             ],
+            payer: {
+                name: payer_name || '',
+                surname: payer_surname || '',
+                email: payer_email
+            },
             notification_url: `${process.env.PRODUCTION_URL}/webhook`,
             back_urls: {
                 success: `${process.env.PRODUCTION_URL}/success`,
