@@ -104,9 +104,16 @@ app.post('/webhook', async (req, res) => {
         console.log('Headers recebidos:', req.headers);
         console.log('Body recebido:', req.body);
 
-        // Webhook validation temporarily disabled for production compatibility
-        // O Mercado Pago envia notificações legítimas que devem ser processadas
-        console.log('Processando webhook - validação de assinatura desabilitada para compatibilidade');
+        // Validar assinatura do webhook em produção
+        if (process.env.NODE_ENV === 'production' && process.env.WEBHOOK_SECRET) {
+            if (!webhook.validateWebhookSignature(req, process.env.WEBHOOK_SECRET)) {
+                console.error('Assinatura de webhook inválida');
+                return res.status(401).json({ error: 'Unauthorized' });
+            }
+            console.log('Webhook validado com sucesso');
+        } else {
+            console.log('Validação de webhook desabilitada (ambiente de desenvolvimento ou WEBHOOK_SECRET não configurado)');
+        }
 
         const notification = req.body;
         console.log('Webhook recebido:', {
