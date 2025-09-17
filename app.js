@@ -53,7 +53,7 @@ app.post('/create_preference', async (req, res) => {
 
         const preference = new Preference(client);
 
-        // Preferência mínima para teste
+        // Configurar preferência com notification_url para webhooks
         const body = {
             items: [
                 {
@@ -61,8 +61,17 @@ app.post('/create_preference', async (req, res) => {
                     quantity: 1,
                     unit_price: 100.00
                 }
-            ]
+            ],
+            notification_url: `${process.env.PRODUCTION_URL}/webhook`,
+            back_urls: {
+                success: `${process.env.PRODUCTION_URL}/success`,
+                failure: `${process.env.PRODUCTION_URL}/failure`,
+                pending: `${process.env.PRODUCTION_URL}/pending`
+            },
+            auto_return: 'approved'
         };
+
+        console.log('Notification URL configurada:', body.notification_url);
 
         const result = await preference.create({ body });
         res.json({
